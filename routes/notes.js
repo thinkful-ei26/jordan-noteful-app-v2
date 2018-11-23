@@ -5,38 +5,60 @@ const express = require('express');
 // Create an router instance (aka "mini-app")
 const router = express.Router();
 
-// TEMP: Simple In-Memory Database
-// const data = require('../db/notes');
+
 const knex = require('../knex');
-// const notes = knex.initialize(data);
+
 
 // Get All (and search by query)
 router.get('/', (req, res, next) => {
   const searchTerm = req.query.searchTerm;
+  const folderId = req.query.id;
 
-  knex.select('id', 'title', 'content')
-    .from('notes')
-    .modify(function (queryBuilder) {
-      if (searchTerm) {
-        queryBuilder.where('title', 'like', `%${searchTerm}%`);
-      }
-    })
-    .orderBy('notes.id')
-    .then(results => {
-      res.json(results);
-    })
-    .catch(err => {
-      next(err);
-    });
+//   knex.select('id', 'title', 'content')
+//     .from('notes')
+//     .modify(function (queryBuilder) {
+//       if (searchTerm) {
+//         queryBuilder.where('title', 'like', `%${searchTerm}%`);
+//       }
+//     })
+//     .orderBy('notes.id')
+//     .then(results => {
+//       res.json(results);
+//     })
+//     .catch(err => {
+//       next(err);
+//     });
+// });
+
+knex.select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
+  .from('notes')
+  .leftJoin('folders', 'notes.folder_id', 'folders.id')
+  .modify(function (queryBuilder) {
+    if (searchTerm) {
+      queryBuilder.where('title', 'like', `%${searchTerm}%`);
+    }
+  })
+  .modify(function (queryBuilder) {
+    if (folderId) {
+      queryBuilder.where('folder_id', folderId);
+    }
+  })
+  .orderBy('notes.id')
+  .then(results => {
+    res.json(results);
+  })
+  .catch(err => next(err));
 });
+
 
 // Get a single item by id
 router.get('/:id', (req, res, next) => {
   const id = req.params.id;
 
   knex  
-    .select()
+    .select('notes.id', 'title', 'content', 'folders.id as folderId', 'folders.name as folderName')
     .from('notes')
+    .leftJoin('folders', 'notes.folder_id', 'folders.id')
     .where('id', `${id}`)
     .returning('id')
     .then(results => {
@@ -94,7 +116,7 @@ router.post('/', (req, res, next) => {
 
   knex('notes')
     .returning(['notes.id', 'title', 'content'])
-    .insert(newItem)
+    .insert(`${newItem}`)
     .then(results => {
       res.json(results);
     })
