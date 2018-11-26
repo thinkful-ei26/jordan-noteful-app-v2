@@ -25,6 +25,8 @@ CREATE TABLE notes (
   folder_id int REFERENCES folders(id) ON DELETE SET NULL
 );
 
+ALTER SEQUENCE notes_id_seq RESTART WITH 1000;
+
 INSERT INTO notes (title, content, folder_id) VALUES 
   (
     '5 life lessons learned from cats',
@@ -52,4 +54,37 @@ INSERT INTO notes (title, content, folder_id) VALUES
     4
   );
 
+CREATE TABLE tags (
+  id serial PRIMARY KEY,
+  name text NOT NULL UNIQUE
+);
 
+CREATE TABLE notes_tags (
+  note_id INTEGER NOT NULL REFERENCES notes ON DELETE CASCADE,
+  tag_id INTEGER NOT NULL REFERENCES tags ON DELETE CASCADE
+);
+
+INSERT INTO tags (name) VALUES 
+('dummy1'),
+('dummy2'),
+('dummy3');
+
+INSERT INTO notes_tags (note_id, tag_id) VALUES 
+  (3, 1), (3, 2), (3, 3),
+  (5, 2);
+
+-- -- get all notes with folders
+-- SELECT * FROM notes
+-- INNER JOIN folders ON notes.folderId = folders.id;
+
+-- -- get all notes, show folders if they exists otherwise null
+-- SELECT * FROM notes
+-- LEFT JOIN folders ON notes.folderId = folders.id;
+
+-- -- get all notes,
+-- -- show folders if they exists otherwise null
+-- -- show tags if they exists otherwise null
+-- SELECT * FROM notes
+-- LEFT JOIN folders ON notes.folderId = folders.id
+-- LEFT JOIN notes_tags ON notes.id = notes_tags.note_id
+-- LEFT JOIN tags ON notes_tags.tag_id = tags.id;
