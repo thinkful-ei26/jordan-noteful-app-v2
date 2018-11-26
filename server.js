@@ -25,8 +25,9 @@ app.use(cors());
 app.use(express.json());
 
 // Mount router on "/api"
-app.use('/api/notes', notesRouter);
-app.use('/api/folders', foldersRouter);
+app.use('/api/notes', router);
+app.use('/api/folders', router);
+app.use('/api/tags', router);
 
 // Custom 404 Not Found route handler
 app.use((req, res, next) => {
